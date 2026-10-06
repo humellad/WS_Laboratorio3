@@ -1,18 +1,14 @@
 class Pokemon {
 
-    static keys = {​
+    static keys = {
+        ArrowUp: false,
+        ArrowDown: false,
+        ArrowLeft: false,
+        ArrowRight: false
 
-        ArrowUp: false,​
+    };
 
-        ArrowDown: false,​
-
-        ArrowLeft: false,​
-
-        ArrowRight: false​
-
-    };​
-
-    static activePokemon = null;​
+    static activePokemon = null;
 
     constructor(name, sprite) {
         this.name = name;
@@ -22,71 +18,57 @@ class Pokemon {
     }
     
     createElement() {
-      const img = document.createElement('img');​
-      img.src = this.sprite;​
-      img.style.position = 'absolute';​
-      img.style.top = Math.ceil(Math.random()*100) + 'px';​
-      img.style.left = Math.ceil(Math.random()*100) + 'px';​
+      const img = document.createElement('img');
+      img.src = this.sprite;
+      img.style.position = 'absolute';
+      img.style.top = Math.ceil(Math.random()*100) + 'px';
+      img.style.left = Math.ceil(Math.random()*100) + 'px';
 
-      document.body.appendChild(img);​
+      document.body.appendChild(img);
 
-      return img;​
+      return img;
     }
     
     addEventListeners() {   
-     	this.element.addEventListener('click', () => {​
-
-            Pokemon.activePokemon = this;​
-
-        });​
+     	this.element.addEventListener('click', () => {
+            Pokemon.activePokemon = this;
+        });
     }
     
     move(step) { 
-    	let top = parseInt(this.element.style.top);​
+    	let top = parseInt(this.element.style.top);
+      let left = parseInt(this.element.style.left);
 
-      let left = parseInt(this.element.style.left);​
+      if (Pokemon.keys.ArrowUp) 
+            this.element.style.top = (top - step) + 'px';
 
-      if (Pokemon.keys.ArrowUp) ​
+      if (Pokemon.keys.ArrowDown)    
+            this.element.style.top = (top + step) + 'px';
 
-            this.element.style.top = (top + step)​ + 'px';​
+      if (Pokemon.keys.ArrowLeft)
+           this.element.style.left = (left - step) + 'px';
 
-      if (Pokemon.keys.ArrowDown)    ​
-
-            this.element.style.top = (top - step)​ + 'px';​
-
-      if (Pokemon.keys.ArrowLeft)​
-
-           this.element.style.left = (left + step)​ + 'px';​
-
-      if (Pokemon.keys.ArrowRight) ​
-
-           this.element.style.left = (left - step)​ + 'px';​
+      if (Pokemon.keys.ArrowRight) 
+           this.element.style.left = (left + step) + 'px';
     }
 } // end of Pokemon class
 
 
 document.addEventListener('keydown', function (event) {
-  
-   Pokemon.keys[event.key] = false;​
-
+   Pokemon.keys[event.key] = true;
 });
 
 document.addEventListener('keyup', function (event) {
-   
-  Pokemon.keys[event.key] = true;​
-
+  Pokemon.keys[event.key] = false;
 });
 
 function moveActivePokemon() {
    
-   const step = 5;​
+   const step = 5;
 
-    if (Pokemon.activePokemon) {​
-
-        Pokemon.activePokemon.move(step);​
-
-    }​
-
+    if (Pokemon.activePokemon) {
+        Pokemon.activePokemon.move(step);
+    }
 }
 
 setInterval(moveActivePokemon, 10);
@@ -96,14 +78,56 @@ const pokemonNames = ['pikachu', 'bulbasaur', 'charmander', 'squirtle'];
 
 function cargarJuego () {
 
-  // llamar a loadImage
+  // llamar a loadImag
+
+  let url = "https://preview.redd.it/dnlz6c3xni951.jpg?width=1080&crop=smart&auto=webp&s=84af1d3e4e27eddc5c612a7b75244a9886389f77"
+
+  loadImage(url).then(img => document.body.appendChild(img)).catch(err => console.error(err));
 
   // Cargar los Pokemon de pokemonNames con Promise.all (NO usar forEach):
   // se lanzan todas las peticiones en paralelo y se espera a que terminen todas.
   
- 
+  url = "https://pokeapi.co/api/v2/pokemon/"
 
+  const pokemonPromises = pokemonNames.map(name => {
+        return fetch(`https://pokeapi.co/api/v2/pokemon/${name}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Error:${name}`);
+                }
+                return response.json();
+            });
+  });
+
+  Promise.all(pokemonPromises)
+        .then(pokemonsData => {
+            pokemonsData.forEach(data => {
+                const sprite = data.sprites.front_default;
+                new Pokemon(data.name, sprite);
+            });
+        })
+        .catch(err => console.error("Erro ao cargar os Pokémon iniciais:", err));
 }
 
 function loadImage (url) {
+  return new Promise ((resolve, reject) => {
+    const image = new Image();
+    image.src = url;
+    image.width;
+    image.height;
+
+    image.addEventListener('load', () => resolve(image));
+    image.addEventListener('error', () => reject("No load"));
+  });
 }
+
+function buscarPokemon() {}
+
+document.addEventListener('DOMContentLoaded', () => {
+    cargarJuego();
+
+    const searchBtn = document.getElementById('searchBtn');
+    if (searchBtn) {
+        searchBtn.addEventListener('click', buscarPokemon);
+    }
+});
