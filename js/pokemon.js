@@ -121,13 +121,43 @@ function loadImage (url) {
   });
 }
 
-function buscarPokemon() {}
+function buscarPokemon() {
+  const input = document.body.getElementsByTagName('input')[0];
+  const checkboxShiny = document.getElementById('shiny');
+
+  if (!input || !input.value.trim()) return;
+  
+  const pokemonName = input.value.trim().toLowerCase();
+
+  fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Pokémon no encontrado");
+            }
+            return response.json();
+        })
+        .then(data => {
+            const isShiny = checkboxShiny && checkboxShiny.checked;
+            const sprite = isShiny ? data.sprites.front_shiny : data.sprites.front_default;
+
+            if (!sprite) {
+              alert("No hay sprite")
+              return;
+            }
+
+            new Pokemon(data.name, sprite);
+            input.value = '';
+        })
+        .catch(err => {
+            console.error(err);
+        });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     cargarJuego();
 
-    const searchBtn = document.getElementById('searchBtn');
-    if (searchBtn) {
-        searchBtn.addEventListener('click', buscarPokemon);
+    const btn = document.getElementById('buscarPokemon');
+    if (btn) {
+        btn.addEventListener('click', buscarPokemon);
     }
 });
